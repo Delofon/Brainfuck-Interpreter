@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,10 +21,13 @@ namespace Brainfuck_Interpreter
         static FileStream   file;
         static StreamReader reader;
 
-        static int indices;
+        static int checkIndices;
 
         static void Main(string[] args)
         {
+            Console.InputEncoding  = Encoding.ASCII;
+            Console.OutputEncoding = Encoding.ASCII;
+
             #region Program Load
 
             Console.WriteLine("Please enter path to the file");
@@ -48,15 +52,17 @@ namespace Brainfuck_Interpreter
 
             instructions = new List<char>();
 
+            checkIndices = 0;
+
             do
             {
                 addOp(instructions);
             }
             while (!reader.EndOfStream);
 
-            if (indices != 0)
+            if (checkIndices != 0)
             {
-                Console.WriteLine("The amount of received '[' does not match the amount of received ']', detected mismatch of {0} (']' - '[')", indices);
+                Console.WriteLine("The amount of received '[' does not match the amount of received ']', detected mismatch of {0} (']' - '[')", checkIndices);
                 Environment.Exit(3);
             }
 
@@ -70,6 +76,7 @@ namespace Brainfuck_Interpreter
             memory = new uint[memorySize];
 
             instructionIndex = 0;
+            memoryIndex = 0;
 
             do
             {
@@ -171,12 +178,14 @@ namespace Brainfuck_Interpreter
 
                     case '[':
                         operations.Add(operation);
-                        indices++;
+                        Console.WriteLine($"{checkIndices}");
+                        checkIndices++;
                         break;
 
                     case ']':
                         operations.Add(operation);
-                        indices--;
+                        Console.WriteLine($"{checkIndices}");
+                        checkIndices--;
                         break;
 
                     default:
