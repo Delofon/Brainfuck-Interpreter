@@ -9,13 +9,22 @@ namespace Brainfuck_Interpreter
 {
     class Program
     {
+        const uint memorySize = 128; // Gotta be limited on memory bitch
+
+        static uint[] memory;
+        static uint   memoryIndex;
+
+        static List<char> instructions;
+        static int instructionIndex;
+
+        static FileStream   file;
+        static StreamReader reader;
+
+        static int indices;
+
         static void Main(string[] args)
         {
-            uint[] memory = new uint[128];
-            uint memoryIndex = 0;
-
-            FileStream file;
-            StreamReader reader;
+            #region Program Load
 
             Console.WriteLine("Please enter path to the file");
             string filePath = Console.ReadLine();
@@ -27,43 +36,62 @@ namespace Brainfuck_Interpreter
             catch
             {
                 Console.WriteLine("Wrong path. Interpretation terminated.");
-                Environment.Exit(-1);
+                Environment.Exit(1);
                 return;
             }
             
             reader = new StreamReader(file);
 
-            List<char> operations = new List<char>();
+            #endregion
 
-            int curSymbol = 0;
+            #region Brainfuck Interpretation
+
+            instructions = new List<char>();
 
             do
             {
-                addOp(operations, reader, ref curSymbol);
+                addOp(instructions);
             }
             while (!reader.EndOfStream);
+
+            if (indices != 0)
+            {
+                Console.WriteLine("The amount of received '[' does not match the amount of received ']', detected mismatch of {0} (']' - '[')", indices);
+                Environment.Exit(3);
+            }
+
+            #endregion
 
             reader.Close();
             file.Close();
 
-            curSymbol = 0;
+            #region Brainfuck Runtime
 
-            List<int> leftIndices = new List<int>();
-            List<int> rightIndices = new List<int>();
+            memory = new uint[memorySize];
+
+            instructionIndex = 0;
 
             do
             {
-                Interpret(ref memory, ref memoryIndex, leftIndices, rightIndices, operations[curSymbol], curSymbol);
-                curSymbol++;
+                PreInterpret();
+                Interpret(instructions[instructionIndex]);
+                instructionIndex++;
             }
-            while (curSymbol != operations.Count - 1);
+            while (instructionIndex != instructions.Count - 1);
+
+            #endregion
 
             Console.WriteLine();
 
             return;
         }
-
-        static void Interpret(ref uint[] memory, ref int memoryIndex, List<int> leftIndices, List<int> rightIndices, char action, int curSymbol)
+        
+        static void PreInterpret()
+        {
+            // Stuff
+            memoryIndex %= memorySize;
+        }
+        static void Interpret(char action)
         {
             if(!char.IsWhiteSpace(action))
             {
@@ -94,17 +122,37 @@ namespace Brainfuck_Interpreter
                         break;
 
                     case '[':
-                        Console.WriteLine("Sorry! Operator [ not implemented yet!");
+                        if(memory[memoryIndex] == 0)
+                        {
+                            int indices = 0;
+                            do
+                            {
+                                if (instructions[instructionIndex] == '[') indices++;
+                                if (instructions[instructionIndex] == ']') indices--;
+                                instructionIndex++;
+                            }
+                            while (indices != 0);
+                        }
                         break;
 
                     case ']':
-                        Console.WriteLine("Sorry! Operator ] not implemented yet!");
+                        if (memory[memoryIndex] != 0)
+                        {
+                            int indices = 0;
+                            do
+                            {
+                                if (instructions[instructionIndex] == '[') indices--;
+                                if (instructions[instructionIndex] == ']') indices++;
+                                instructionIndex--;
+                            }
+                            while (indices != 0);
+                        }
                         break;
                 }
             }
         }
 
-        static void addOp(List<char> operations, StreamReader reader, ref int curSymbol)
+        static void addOp(List<char> operations)
         {
             char operation = (char)reader.Read();
 
@@ -113,48 +161,35 @@ namespace Brainfuck_Interpreter
                 switch ((char)reader.Read())
                 {
                     case '>':
-                        operations.Add(operation);
-                        break;
-
                     case '<':
-                        operations.Add(operation);
-                        break;
-
                     case '+':
-                        operations.Add(operation);
-                        break;
-
                     case '-':
-                        operations.Add(operation);
-                        break;
-
                     case '.':
-                        operations.Add(operation);
-                        break;
-
                     case ',':
                         operations.Add(operation);
                         break;
 
                     case '[':
                         operations.Add(operation);
+                        indices++;
                         break;
 
                     case ']':
                         operations.Add(operation);
+                        indices--;
                         break;
 
                     default:
-                        catchErrorWrongOp(curSymbol, operation);
+                        catchErrorWrongOp(operation);
                         return;
                 }
             }
         }
 
-        static void catchErrorWrongOp(int curSymbol, char action)
+        static void catchErrorWrongOp(char action)
         {
-            Console.WriteLine("Unknown operator {1} detected at position {0}. Interpretation terminated.", curSymbol, action);
-            Environment.Exit(-1);
+            Console.WriteLine("Unknown operator {1} detected at position {0}. Interpretation terminated.", instructionIndex, action);
+            Environment.Exit(2);
         }
     }
 }
