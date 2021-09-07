@@ -56,16 +56,15 @@ namespace Brainfuck_Interpreter
 
             do
             {
-                addOp(instructions);
+                AddInstruction();
             }
             while (!reader.EndOfStream);
 
             if (checkIndices != 0)
             {
                 Console.WriteLine("The amount of received '[' does not match the amount of received ']', detected mismatch of {0} (']' - '[')", checkIndices);
-                Environment.Exit(3);
+                Environment.Exit(2);
             }
-
             #endregion
 
             reader.Close();
@@ -81,7 +80,7 @@ namespace Brainfuck_Interpreter
             do
             {
                 PreInterpret();
-                Interpret(instructions[instructionIndex]);
+                Interpret();
                 instructionIndex++;
             }
             while (instructionIndex != instructions.Count - 1);
@@ -98,107 +97,89 @@ namespace Brainfuck_Interpreter
             // Stuff
             memoryIndex %= memorySize;
         }
-        static void Interpret(char action)
+        static void Interpret()
         {
-            if(!char.IsWhiteSpace(action))
+            switch (instructions[instructionIndex])
             {
-                switch(action)
-                {
-                    case '>':
-                        memoryIndex++;
-                        break;
+                case '>':
+                    memoryIndex++;
+                    break;
 
-                    case '<':
-                        memoryIndex--;
-                        break;
+                case '<':
+                    memoryIndex--;
+                    break;
 
-                    case '+':
-                        memory[memoryIndex]++;
-                        break;
+                case '+':
+                    memory[memoryIndex]++;
+                    break;
 
-                    case '-':
-                        memory[memoryIndex]--;
-                        break;
+                case '-':
+                    memory[memoryIndex]--;
+                    break;
 
-                    case '.':
-                        Console.Write((char)memory[memoryIndex]);
-                        break;
+                case '.':
+                    Console.Write((char)memory[memoryIndex]);
+                    break;
 
-                    case ',':
-                        memory[memoryIndex] = Console.ReadKey(true).KeyChar;
-                        break;
+                case ',':
+                    memory[memoryIndex] = Console.ReadKey(true).KeyChar;
+                    break;
 
-                    case '[':
-                        if(memory[memoryIndex] == 0)
+                case '[':
+                    if (memory[memoryIndex] == 0)
+                    {
+                        int indices = 0;
+                        do
                         {
-                            int indices = 0;
-                            do
-                            {
-                                if (instructions[instructionIndex] == '[') indices++;
-                                if (instructions[instructionIndex] == ']') indices--;
-                                instructionIndex++;
-                            }
-                            while (indices != 0);
+                            if (instructions[instructionIndex] == '[') indices++;
+                            if (instructions[instructionIndex] == ']') indices--;
+                            instructionIndex++;
                         }
-                        break;
+                        while (indices != 0);
+                    }
+                    break;
 
-                    case ']':
-                        if (memory[memoryIndex] != 0)
+                case ']':
+                    if (memory[memoryIndex] != 0)
+                    {
+                        int indices = 0;
+                        do
                         {
-                            int indices = 0;
-                            do
-                            {
-                                if (instructions[instructionIndex] == '[') indices--;
-                                if (instructions[instructionIndex] == ']') indices++;
-                                instructionIndex--;
-                            }
-                            while (indices != 0);
+                            if (instructions[instructionIndex] == '[') indices--;
+                            if (instructions[instructionIndex] == ']') indices++;
+                            instructionIndex--;
                         }
-                        break;
-                }
+                        while (indices != 0);
+                    }
+                    break;
             }
         }
 
-        static void addOp(List<char> operations)
+        static void AddInstruction()
         {
-            char operation = (char)reader.Read();
+            char instruction = (char)reader.Read();
 
-            if (!char.IsWhiteSpace(operation))
+            switch (instruction)
             {
-                switch ((char)reader.Read())
-                {
-                    case '>':
-                    case '<':
-                    case '+':
-                    case '-':
-                    case '.':
-                    case ',':
-                        operations.Add(operation);
-                        break;
+                case '>':
+                case '<':
+                case '+':
+                case '-':
+                case '.':
+                case ',':
+                    instructions.Add(instruction);
+                    break;
 
-                    case '[':
-                        operations.Add(operation);
-                        Console.WriteLine($"{checkIndices}");
-                        checkIndices++;
-                        break;
+                case '[':
+                    instructions.Add(instruction);
+                    checkIndices++;
+                    break;
 
-                    case ']':
-                        operations.Add(operation);
-                        Console.WriteLine($"{checkIndices}");
-                        checkIndices--;
-                        break;
-
-                    default:
-                        catchErrorWrongOp(operation);
-                        return;
-                }
+                case ']':
+                    instructions.Add(instruction);
+                    checkIndices--;
+                    break;
             }
-        }
-
-        static void catchErrorWrongOp(char action)
-        {
-            Console.WriteLine("Unknown operator {1} detected at position {0}. Interpretation terminated.", instructionIndex, action);
-            Environment.Exit(2);
         }
     }
 }
