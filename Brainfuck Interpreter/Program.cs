@@ -10,13 +10,13 @@ namespace Brainfuck_Interpreter
 {
     class Program
     {
-        const uint memorySize = 128; // Gotta be limited on memory bitch
+        const uint memorySize = 30000; // Gotta be limited on memory bitch
 
-        static uint[] memory;
-        static uint   memoryIndex;
+        public static uint[] memory;
+        public static uint   memoryIndex;
 
         static List<char> instructions;
-        static int instructionIndex;
+        public static int instructionIndex;
 
         static FileStream   file;
         static StreamReader reader;
@@ -96,6 +96,7 @@ namespace Brainfuck_Interpreter
         {
             // Stuff
             memoryIndex %= memorySize;
+            instructionIndex %= instructions.Count; // uh safety?
         }
         static void Interpret()
         {
