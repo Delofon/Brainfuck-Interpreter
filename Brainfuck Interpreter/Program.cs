@@ -2,12 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Brainfuck_Interpreter
 {
     class Program
     {
-        const uint memorySize = 30000; // Gotta be limited on memory bitch
+        const uint memorySize = 128; // Gotta be limited on memory bitch
 
         static uint[] memory;
         static uint   memoryIndex;
@@ -23,7 +24,7 @@ namespace Brainfuck_Interpreter
             Console.InputEncoding  = Encoding.ASCII;
             Console.OutputEncoding = Encoding.ASCII;
 
-            #region Program Load
+            #region File Open
 
             Console.WriteLine("Please enter path to the file");
             string filePath = Console.ReadLine();
@@ -43,9 +44,7 @@ namespace Brainfuck_Interpreter
 
             #endregion
 
-            #region Brainfuck Interpretation
-
-            instructions = reader.ReadToEnd();
+            instructions = reader.ReadToEnd() + " ";
 
             int checkIndices = instructions.Count(x => x == ']') - instructions.Count(x => x == '[');
             if (checkIndices != 0)
@@ -53,12 +52,11 @@ namespace Brainfuck_Interpreter
                 Console.WriteLine("The amount of received '[' does not match the amount of received ']', detected mismatch of {0} (']' - '[')", checkIndices);
                 Environment.Exit(2);
             }
-            #endregion
 
             reader.Close();
             file.Close();
 
-            #region Brainfuck Runtime
+            #region Runtime
 
             memory = new uint[memorySize];
 
@@ -67,6 +65,7 @@ namespace Brainfuck_Interpreter
 
             do
             {
+                //Thread.Sleep(1000);
                 PreInterpret();
                 Interpret();
                 instructionIndex++;
@@ -83,6 +82,7 @@ namespace Brainfuck_Interpreter
         static void PreInterpret()
         {
             // Stuff
+            if (memoryIndex < 0) memoryIndex = 0;
             memoryIndex %= memorySize;
             //instructionIndex %= instructions.Length; // uh safety?
         }
@@ -117,28 +117,36 @@ namespace Brainfuck_Interpreter
                 case '[':
                     if (memory[memoryIndex] == 0)
                     {
+                        //Console.Write("[: ");
                         int indices = 0;
                         do
                         {
+                       //     if (instructions[instructionIndex] == '[') { indices++; Console.Write('['); }
+                       //else if (instructions[instructionIndex] == ']') { indices--; Console.Write(']'); }
                             if (instructions[instructionIndex] == '[') indices++;
-                            if (instructions[instructionIndex] == ']') indices--;
+                       else if (instructions[instructionIndex] == ']') indices--;
                             instructionIndex++;
                         }
-                        while (indices != 0);
+                        while (indices > 0);
+                        //Console.WriteLine();
                     }
                     break;
 
                 case ']':
                     if (memory[memoryIndex] != 0)
                     {
+                        //Console.Write("]: ");
                         int indices = 0;
                         do
                         {
+                       //     if (instructions[instructionIndex] == '[') { indices--; Console.Write('['); }
+                       //else if (instructions[instructionIndex] == ']') { indices++; Console.Write(']'); }
                             if (instructions[instructionIndex] == '[') indices--;
-                            if (instructions[instructionIndex] == ']') indices++;
+                       else if (instructions[instructionIndex] == ']') indices++;
                             instructionIndex--;
                         }
-                        while (indices != 0);
+                        while (indices > 0);
+                        //Console.WriteLine();
                     }
                     break;
             }
