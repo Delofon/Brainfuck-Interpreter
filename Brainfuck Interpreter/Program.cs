@@ -1,10 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Brainfuck_Interpreter
 {
@@ -87,7 +84,7 @@ namespace Brainfuck_Interpreter
         {
             // Stuff
             memoryIndex %= memorySize;
-            instructionIndex %= instructions.Length; // uh safety?
+            //instructionIndex %= instructions.Length; // uh safety?
         }
         static void Interpret()
         {
