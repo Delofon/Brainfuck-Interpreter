@@ -12,16 +12,14 @@ namespace Brainfuck_Interpreter
     {
         const uint memorySize = 30000; // Gotta be limited on memory bitch
 
-        public static uint[] memory;
-        public static uint   memoryIndex;
+        static uint[] memory;
+        static uint   memoryIndex;
 
-        static List<char> instructions;
-        public static int instructionIndex;
+        static string instructions;
+        static int instructionIndex;
 
         static FileStream   file;
         static StreamReader reader;
-
-        static int checkIndices;
 
         static void Main(string[] args)
         {
@@ -50,16 +48,9 @@ namespace Brainfuck_Interpreter
 
             #region Brainfuck Interpretation
 
-            instructions = new List<char>();
+            instructions = reader.ReadToEnd();
 
-            checkIndices = 0;
-
-            do
-            {
-                AddInstruction();
-            }
-            while (!reader.EndOfStream);
-
+            int checkIndices = instructions.Count(x => x == ']') - instructions.Count(x => x == '[');
             if (checkIndices != 0)
             {
                 Console.WriteLine("The amount of received '[' does not match the amount of received ']', detected mismatch of {0} (']' - '[')", checkIndices);
@@ -83,7 +74,7 @@ namespace Brainfuck_Interpreter
                 Interpret();
                 instructionIndex++;
             }
-            while (instructionIndex != instructions.Count - 1);
+            while (instructionIndex != instructions.Length - 1);
 
             #endregion
 
@@ -96,7 +87,7 @@ namespace Brainfuck_Interpreter
         {
             // Stuff
             memoryIndex %= memorySize;
-            instructionIndex %= instructions.Count; // uh safety?
+            instructionIndex %= instructions.Length; // uh safety?
         }
         static void Interpret()
         {
@@ -152,33 +143,6 @@ namespace Brainfuck_Interpreter
                         }
                         while (indices != 0);
                     }
-                    break;
-            }
-        }
-
-        static void AddInstruction()
-        {
-            char instruction = (char)reader.Read();
-
-            switch (instruction)
-            {
-                case '>':
-                case '<':
-                case '+':
-                case '-':
-                case '.':
-                case ',':
-                    instructions.Add(instruction);
-                    break;
-
-                case '[':
-                    instructions.Add(instruction);
-                    checkIndices++;
-                    break;
-
-                case ']':
-                    instructions.Add(instruction);
-                    checkIndices--;
                     break;
             }
         }
