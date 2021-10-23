@@ -63,14 +63,12 @@ namespace Brainfuck_Interpreter
             instructionIndex = 0;
             memoryIndex = 0;
 
-            do
+            for(instructionIndex = 0; instructionIndex < instructions.Length - 1; instructionIndex++)
             {
                 //Thread.Sleep(1000);
                 PreInterpret();
                 Interpret();
-                instructionIndex++;
             }
-            while (instructionIndex != instructions.Length - 1);
 
             #endregion
 
@@ -84,7 +82,6 @@ namespace Brainfuck_Interpreter
             // Stuff
             if (memoryIndex < 0) memoryIndex = 0;
             memoryIndex %= memorySize;
-            //instructionIndex %= instructions.Length; // uh safety?
         }
         static void Interpret()
         {
@@ -117,36 +114,28 @@ namespace Brainfuck_Interpreter
                 case '[':
                     if (memory[memoryIndex] == 0)
                     {
-                        //Console.Write("[: ");
                         int indices = 0;
                         do
                         {
-                       //     if (instructions[instructionIndex] == '[') { indices++; Console.Write('['); }
-                       //else if (instructions[instructionIndex] == ']') { indices--; Console.Write(']'); }
                             if (instructions[instructionIndex] == '[') indices++;
                        else if (instructions[instructionIndex] == ']') indices--;
                             instructionIndex++;
                         }
                         while (indices > 0);
-                        //Console.WriteLine();
                     }
                     break;
 
                 case ']':
                     if (memory[memoryIndex] != 0)
                     {
-                        //Console.Write("]: ");
                         int indices = 0;
                         do
                         {
-                       //     if (instructions[instructionIndex] == '[') { indices--; Console.Write('['); }
-                       //else if (instructions[instructionIndex] == ']') { indices++; Console.Write(']'); }
                             if (instructions[instructionIndex] == '[') indices--;
                        else if (instructions[instructionIndex] == ']') indices++;
                             instructionIndex--;
                         }
                         while (indices > 0);
-                        //Console.WriteLine();
                     }
                     break;
             }
