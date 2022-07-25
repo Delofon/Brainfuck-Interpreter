@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
+
+// System.Byte for 8 bits
+// System.UInt16 for 16 bits
+// and so on
+using scalar = System.Byte;
 
 namespace Brainfuck_Interpreter
 {
     class Program
     {
-        const uint memorySize = 128; // Gotta be limited on memory bitch
+        const uint memorySize = 30000;
 
-        static uint[] memory;
+        static scalar[] memory;
         static uint   memoryIndex;
 
         static string instructions;
@@ -31,7 +36,7 @@ namespace Brainfuck_Interpreter
 
             try
             {
-                file = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                file = new FileStream(filePath.Trim(new char[]{ '"' }), FileMode.Open, FileAccess.Read);
             }
             catch
             {
@@ -46,6 +51,9 @@ namespace Brainfuck_Interpreter
 
             instructions = reader.ReadToEnd() + " ";
 
+            reader.Close();
+            file.Close();
+
             int checkIndices = instructions.Count(x => x == ']') - instructions.Count(x => x == '[');
             if (checkIndices != 0)
             {
@@ -53,15 +61,15 @@ namespace Brainfuck_Interpreter
                 Environment.Exit(2);
             }
 
-            reader.Close();
-            file.Close();
-
             #region Runtime
 
-            memory = new uint[memorySize];
+            memory = new scalar[memorySize];
 
             instructionIndex = 0;
             memoryIndex = 0;
+
+            Stopwatch clock = new Stopwatch();
+            clock.Start();
 
             for(instructionIndex = 0; instructionIndex < instructions.Length - 1; instructionIndex++)
             {
@@ -70,9 +78,12 @@ namespace Brainfuck_Interpreter
                 Interpret();
             }
 
+            clock.Stop();
+
             #endregion
 
             Console.WriteLine();
+            Console.WriteLine($"Finished in {clock.ElapsedMilliseconds} ms.");
 
             return;
         }
@@ -80,8 +91,8 @@ namespace Brainfuck_Interpreter
         static void PreInterpret()
         {
             // Stuff
-            if (memoryIndex < 0) memoryIndex = 0;
-            memoryIndex %= memorySize;
+            while (memoryIndex < 0) memoryIndex += memorySize;
+            if(memoryIndex >= memorySize) memoryIndex %= memorySize;
         }
         static void Interpret()
         {
@@ -108,7 +119,7 @@ namespace Brainfuck_Interpreter
                     break;
 
                 case ',':
-                    memory[memoryIndex] = Console.ReadKey(true).KeyChar;
+                    memory[memoryIndex] = (scalar)Console.ReadKey(false).KeyChar;
                     break;
 
                 case '[':
@@ -122,6 +133,7 @@ namespace Brainfuck_Interpreter
                             instructionIndex++;
                         }
                         while (indices > 0);
+                        instructionIndex--;
                     }
                     break;
 
@@ -136,6 +148,7 @@ namespace Brainfuck_Interpreter
                             instructionIndex--;
                         }
                         while (indices > 0);
+                        instructionIndex++;
                     }
                     break;
             }
